@@ -3,7 +3,7 @@ library(tidyverse)
 library(fixest)
 library(readr)
 
-# Load the datasets
+# Load the data sets
 oecd_dac <- read_csv('./data/raw/OECD_DAC.csv', skip = 4, col_names = TRUE)
 weo_data <- read_csv('./data/raw/WEO_Data.csv')
 world_bank_cpia <- read_csv('./data/raw/World_Bank_CPIA.csv', skip = 4, col_names = TRUE)
@@ -43,7 +43,8 @@ initial_gdp_per_capita <- weo_data_melted %>%
   summarise(Initial_Income = log(`Gross domestic product per capita, constant prices_National currency`)) %>%
   ungroup()
 
-# Merge datasets
+
+# Merge data sets
 merged_data <- oecd_dac_melted %>% 
   inner_join(world_bank_cpia_melted, by = c("Country Name", "Country Code", "Year")) %>%
   inner_join(weo_data_melted, by = c("Country Name" = "Country", "Year")) %>%
@@ -64,13 +65,8 @@ merged_data <- merged_data %>%
   filter(!is.na(GDP_per_capita)) %>%
   mutate(
     Policy_Aid_GDP = CPIA_Score * Aid_GDP
-  ) %>%
-  drop_na()
+  ) 
 
-# Regression Analysis
-formula <- GDP_per_capita ~ Initial_Income + CPIA_Score + Policy_Aid_GDP + Aid_GDP + Aid_GDP_squared
-model <- feols(formula, data = merged_data)
-summary(model)
 
 # Tests to ensure everything is merged correctly
 # Check if any country-year combinations are missing in the merged data
@@ -93,3 +89,39 @@ total_cases <- nrow(merged_data)
 cat("Number of complete cases:", complete_cases, "\n")
 cat("Total number of cases:", total_cases, "\n")
 cat("Proportion of complete cases:", complete_cases / total_cases, "\n")
+
+# Final Cleaning
+
+# Rename columns using tidyverse conventions
+cleaned_data <- merged_data %>%
+  rename(
+    country_name = `Country Name`,
+    country_code = `Country Code`,
+    indicator_name = `Indicator Name.x`,
+    indicator_code = `Indicator Code.x`,
+    year = `Year`,
+    aid_gni = `Aid_GNI`,
+    indicator_name_y = `Indicator Name.y`,
+    indicator_code_y = `Indicator Code.y`,
+    cpia_score = `CPIA_Score`,
+    subject_descriptor = `Subject Descriptor`,
+    units = `Units`,
+    scale = `Scale`,
+    country_series_specific_notes = `Country/Series-specific Notes`,
+    estimates_start_after = `Estimates Start After`,
+    gdp_per_capita_constant_national = `Gross domestic product per capita, constant prices_National currency`,
+    gdp_per_capita_constant_ppp = `Gross domestic product per capita, constant prices_Purchasing power parity; 2017 international dollar`,
+    gdp_per_capita_current_national = `Gross domestic product per capita, current prices_National currency`,
+    gdp_per_capita_current_usd = `Gross domestic product per capita, current prices_U.S. dollars`,
+    initial_income = `Initial_Income`,
+    aid_gdp = `Aid_GDP`,
+    aid_gdp_squared = `Aid_GDP_squared`,
+    gdp_per_capita = `GDP_per_capita`,
+    policy_aid_gdp = `Policy_Aid_GDP`
+  ) %>%
+  # Remove duplicate columns
+  select(-contains(".y"))
+
+# View cleaned data
+cleaned_data
+
