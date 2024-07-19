@@ -67,3 +67,35 @@ summary(model, driscoll_kraay ~ year)
 # Therefore, using Driscoll-Kraay standard errors helps to ensure that the 
 # standard errors of the estimated coefficients are reliable and robust to 
 # various issues typically present in panel data.
+
+
+
+# Extra modelling
+
+cleaned_data <- cleaned_data %>%
+  group_by(country_name) %>%
+  arrange(year) %>%
+  mutate(gdp_growth = (gdp_per_capita - lag(gdp_per_capita)) / lag(gdp_per_capita) * 100,
+         gdp_growth_lagged_1 = lead(gdp_growth, n = 1)) %>%
+  ungroup()
+
+
+# Specify and estimate the fixed effects model
+model_2 <- feols(
+  gdp_growth_lagged ~ cpia_score + aid_gni + aid_gni_squared + interaction_term | country_name + year,
+  data = cleaned_data
+)
+
+# Print the summary of the model
+summary(model_2, driscoll_kraay ~ year)
+
+# Specify and estimate the fixed effects model
+model_3 <- feols(
+  log(gdp_growth_lagged) ~ cpia_score + aid_gni + aid_gni_squared + interaction_term | country_name + year,
+  data = cleaned_data
+)
+
+# Print the summary of the model
+summary(model_3, driscoll_kraay ~ year)
+
+
