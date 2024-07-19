@@ -77,4 +77,10 @@ RMSE: 456,080.6     Adj. R2: 0.956723
 
 Driscoll-Kraay standard errors are appropriate for this panel data model because: 1. They account for cross-sectional dependence, which is common in country-level data. 2. They adjust for serial correlation, addressing the issue of correlated errors over time within each country. 3. They are robust to heteroskedasticity, making them suitable for datasets with non-constant error variances.
 
-Therefore, using Driscoll-Kraay standard errors helps to ensure that the standard errors of the estimated coefficients are reliable and robust to various issues typically present in panel data. \`\`\`
+Therefore, using Driscoll-Kraay standard errors helps to ensure that the standard errors of the estimated coefficients are reliable and robust to various issues typically present in panel data.
+
+# Comparison to Collier and Dollar (2002)
+
+Our regression analysis aligns well with the foundational conclusions drawn by Collier and Dollar, particularly in emphasizing the crucial role of policy quality in enhancing the effectiveness of foreign aid on economic growth. Both our study and theirs confirm that improvements in policy environments significantly amplify the positive impact of aid on GDP per capita, reinforcing the strategy of targeting aid to countries with better institutional frameworks.
+
+However, there are important distinctions in our findings. While Collier and Dollar highlighted significant diminishing returns to aid, our analysis found that the aid squared term, although negative, was not statistically significant. This suggests that in our dataset or model specification, the effect of diminishing returns is not as strongly evidenced. Furthermore, our results indicate a notable interaction effect where the effectiveness of aid decreases as policy quality improves, implying that in well-governed environments, the marginal benefit of additional aid diminishes more rapidly. This contrasts with Collier and Dollar’s findings, which suggest a more nuanced interaction.
