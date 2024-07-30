@@ -56,4 +56,3 @@ aid_gdp_summary <- cleaned_data %>%
 # Using stargazer for the Aid and GDP per capita summary table
 stargazer(aid_gdp_summary, type = "text", title = "Summary Table for Aid and GDP per Capita by Country", summary = FALSE)
 
-

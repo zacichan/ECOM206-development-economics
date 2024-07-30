@@ -76,7 +76,11 @@ cleaned_data <- cleaned_data %>%
   group_by(country_name) %>%
   arrange(year) %>%
   mutate(gdp_growth = (gdp_per_capita - lag(gdp_per_capita)) / lag(gdp_per_capita) * 100,
-         gdp_growth_lagged_1 = lead(gdp_growth, n = 1)) %>%
+         gdp_growth_lagged_1 = lead(gdp_growth, n = 1),
+         gdp_growth_lagged_2 = lead(gdp_growth, n = 2),
+         gdp_growth_lagged_3 = lead(gdp_growth, n = 3),
+         gdp_growth_lagged_4 = lead(gdp_growth, n = 4),
+         gdp_growth_lagged_5 = lead(gdp_growth, n = 5),) %>%
   ungroup()
 
 
@@ -99,3 +103,34 @@ model_3 <- feols(
 summary(model_3, driscoll_kraay ~ year)
 
 
+# Presentation Models
+
+library(fixest)
+library(ggplot2)
+
+# List to store models
+models <- list()
+
+# Loop from 1 to 5 to dynamically create variable names and fit models
+for (i in 1:5) {
+  # Dynamically create the response variable name
+  response_var <- paste0("gdp_growth_lagged_", i)
+  
+  # Fit the model using feols
+  model <- feols(
+    as.formula(paste(response_var, "~ cpia_score + aid_gni + aid_gni_squared + interaction_term | country_name + year")),
+    data = cleaned_data
+  )
+  
+  # Store the model in the list
+  models[[response_var]] <- model
+}
+
+# Plot coefficients for all models on the same graph
+coefplot(models, main = "Coefficient Plots for GDP Growth Models", legend = "topright")
+
+coefplot(models, main = "Coefficient Plots for GDP Growth Models") +
+  theme(legend.position = "right") +
+  guides(color = guide_legend(title = "Model"))
+
+etable(models, export = "./outputs")

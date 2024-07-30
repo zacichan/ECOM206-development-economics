@@ -116,7 +116,7 @@ cleaned_data <- merged_data %>%
     initial_income = `Initial_Income`,
     aid_gdp = `Aid_GDP`,
     aid_gdp_squared = `Aid_GDP_squared`,
-    gdp_per_capita = `GDP_per_capita`,
+    gdp_per_capita = `GDP_per_capita`,x
     policy_aid_gdp = `Policy_Aid_GDP`
   ) %>%
   # Remove duplicate columns
@@ -124,4 +124,6 @@ cleaned_data <- merged_data %>%
 
 # View cleaned data
 cleaned_data
+
+
 
