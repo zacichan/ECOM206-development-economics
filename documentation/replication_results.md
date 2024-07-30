@@ -39,7 +39,7 @@ The final dataset consisted of 1,627 observations after merging all sources.
 
 The regression model was specified as follows:
 
-$$ \text{Growth} \sim \text{Initial_GNP_per_capita} + \text{CPIA} + \text{ODA_GDP} + A^2 + AP + \text{Regional Dummies} $$
+$$ \text{Growth} \sim \text{Initial GNP per capita} + \text{CPIA} + \text{ODA/GDP} + A^2 + AP + \text{Regional Dummies} $$
 
 #### Model Summary
 
@@ -92,10 +92,10 @@ These findings provide important insights for policymakers focusing on enhancing
 
 When compared to Collier and Dollar we find:
 
-	•	**Policy Quality**: Both analyses find that good policies (higher CPIA scores) are associated with higher growth. However, our study finds a much stronger effect.
+- **Policy Quality**: Both analyses find that good policies (higher CPIA scores) are associated with higher growth. However, our study finds a much stronger effect.
 
-	•	**Aid Effectiveness**: The original study by Collier and Dollar finds that aid has diminishing returns and its effectiveness improves with a better policy environment. In contrast, our analysis does not find a significant effect for aid or its interaction with policy.
+- **Aid Effectiveness**: The original study by Collier and Dollar finds that aid has diminishing returns and its effectiveness improves with a better policy environment. In contrast, our analysis does not find a significant effect for aid or its interaction with policy.
 
-	•	**Initial Income and Regional Effects**: The significance of initial income and regional dummies in Collier and Dollar’s study suggests these factors play a role in growth, while our analysis does not find such effects.
+- **Initial Income and Regional Effects**: The significance of initial income and regional dummies in Collier and Dollar’s study suggests these factors play a role in growth, while our analysis does not find such effects.
 
 ------------------------------------------------------------------------
