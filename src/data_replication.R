@@ -213,4 +213,14 @@ model <- lm(Growth ~ Initial_GNP_per_capita + CPIA + ODA_GDP + A_squared + AP_in
 summary(model)
 
 
+# 3: Perform fixed effects estimation
+
+library(fixest)
+
+model_fe <- feols(Growth ~ CPIA + ODA_GDP + A_squared + AP_interaction | Country + Year,
+                  data = merged_data)
+
+summary(model_fe, driscoll_kraay ~ Year)
+
+
 

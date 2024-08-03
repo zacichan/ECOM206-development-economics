@@ -92,10 +92,10 @@ These findings provide important insights for policymakers focusing on enhancing
 
 When compared to Collier and Dollar we find:
 
-	•	**Policy Quality**: Both analyses find that good policies (higher CPIA scores) are associated with higher growth. However, our study finds a much stronger effect.
+-   **Policy Quality**: Both analyses find that good policies (higher CPIA scores) are associated with higher growth. However, our study finds a much stronger effect.
 
-	•	**Aid Effectiveness**: The original study by Collier and Dollar finds that aid has diminishing returns and its effectiveness improves with a better policy environment. In contrast, our analysis does not find a significant effect for aid or its interaction with policy.
+-   **Aid Effectiveness**: The original study by Collier and Dollar finds that aid has diminishing returns and its effectiveness improves with a better policy environment. In contrast, our analysis does not find a significant effect for aid or its interaction with policy.
 
-	•	**Initial Income and Regional Effects**: The significance of initial income and regional dummies in Collier and Dollar’s study suggests these factors play a role in growth, while our analysis does not find such effects.
+-   **Initial Income and Regional Effects**: The significance of initial income and regional dummies in Collier and Dollar’s study suggests these factors play a role in growth, while our analysis does not find such effects.
 
 ------------------------------------------------------------------------

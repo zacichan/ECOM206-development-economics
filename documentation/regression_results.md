@@ -1,5 +1,3 @@
-Here is the formatted output in Markdown:
-
 ``` markdown
 # Load necessary libraries
 ```r
