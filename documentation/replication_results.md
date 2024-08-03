@@ -84,6 +84,8 @@ F-statistic: 6.816 on 10 and 1616 DF,  p-value: 1.732e-10
 -   **AP_interaction**: The interaction between aid and policy is not significant, indicating that the effectiveness of aid does not significantly depend on the policy environment.
 -   **Regional Dummies**: None of the regional dummy variables are significant, indicating that regional differences do not significantly affect growth when controlling for other factors.
 
+TO ADD FIXED EFFECTS INTERPRETATION
+
 ## Conclusion
 
 The analysis shows that while good policy environments (as measured by CPIA) positively influence growth, the effectiveness of aid and the initial income levels do not have a significant impact. The diminishing returns to aid are evident, and regional effects are not statistically significant.
@@ -97,5 +99,24 @@ When compared to Collier and Dollar we find:
 -   **Aid Effectiveness**: The original study by Collier and Dollar finds that aid has diminishing returns and its effectiveness improves with a better policy environment. In contrast, our analysis does not find a significant effect for aid or its interaction with policy.
 
 -   **Initial Income and Regional Effects**: The significance of initial income and regional dummies in Collier and Dollar’s study suggests these factors play a role in growth, while our analysis does not find such effects.
+
+## Fixed effects results
+
+```         
+> summary(model_fe, driscoll_kraay ~ Year)
+OLS estimation, Dep. Var.: Growth
+Observations: 1,627
+Fixed-effects: Country: 78,  Year: 18
+Standard-errors: Driscoll-Kraay (L=2) 
+                Estimate Std. Error   t value Pr(>|t|)    
+CPIA            3.042135   1.128561  2.695587 0.015315 *  
+ODA_GDP        -0.275615   0.308188 -0.894310 0.383643    
+A_squared       0.001388   0.000887  1.563792 0.136290    
+AP_interaction  0.058429   0.087880  0.664868 0.515054    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 4.36923     Adj. R2: 0.205973
+                Within R2: 0.017546
+```
 
 ------------------------------------------------------------------------
