@@ -1,0 +1,316 @@
+---
+title: |
+  ECOM206: Development Economics Group Project: Group B
+subtitle: How to allocate foreign aid - An investigation of policy quality and aid effectiveness
+published: "Queen Mary Economic Masters Apprenticeship Program"
+code-repo: "Access the code, data, and analysis at <https://github.com/zacichan/ECOM206-development-economics/tree/main>"
+correspondence-prefix: "Correspondence concerning this article should be addressed to"
+author:
+  - name: Brendan Jacot
+    email: te23333@qmul.ac.uk
+    title: Economist
+    attributes:
+      corresponding: False
+  - name: Amber Talbott
+    email: te23040@qmul.ac.uk
+    title: Economist
+    attributes:
+      corresponding: False
+  - name: Anja Jones
+    email: te23336@qmul.ac.uk
+    title: Economist
+    attributes:
+      corresponding: False
+  - name: Zac Payne-Thompson
+    email: te29003@qmul.ac.uk
+    title: Lead Data Scientist
+    attributes:
+      corresponding: False
+abstract: |
+  This study replicates and extends the influential work of Collier and Dollar (2002) on aid effectiveness and policy quality, using data from 2005 to 2022. We investigate whether the effectiveness of Official Development Assistance (ODA) varies with the quality of policies and institutions in recipient countries, as measured by the World Bank's Country Policy and Institutional Assessment (CPIA) scores. Our analysis employs both Ordinary Least Squares (OLS) and Fixed Effects (FE) models to examine the relationship between aid, policy quality, and economic growth across a broad sample of developing countries. Contrary to Collier and Dollar's original findings, our results do not support the hypothesis that aid is more effective in countries with better policies and institutions. While we find a consistently positive and significant relationship between CPIA scores and economic growth, we do not observe a significant interaction effect between aid and policy quality. The coefficient on aid itself is statistically insignificant in both our OLS and FE models, providing no clear evidence of a direct relationship between aid flows and growth outcomes. These findings have important implications for international development policy, particularly regarding the use of CPIA scores in aid allocation formulae. Our results suggest that the weight given to policy quality measures in determining aid allocations may need to be reconsidered. However, we also acknowledge the limitations of cross-country growth regressions and discuss alternative approaches for future research on aid effectiveness. This study contributes to the ongoing debate on aid allocation strategies and highlights the need for continued scrutiny of the empirical foundations underlying development policy decisions.
+keywords:
+  - Development Economics
+  - Foreign Aid
+  - Aid Effectiveness
+  - Economic Growth
+  - Policy Quality
+  - CPIA
+  - Replication Study
+date: 08/04/2024
+epigraph:
+  - text: Globalisation has reinforced inequality between the richest and poorest nations. The primary determinant of a country’s success in the global economy has been the quality of its policies and institutions. 
+    source: Paul Collier and David Dollar
+# bibliography: references.bib
+format:
+  hikmah-pdf: default
+  hikmah-manuscript-pdf: default
+geometry:
+  - top=30mm
+  - left=20mm
+  - heightrounded
+---
+
+---
+
+# Introduction
+
+Official Development Assistance (ODA) remains a critical source of financing for developing countries, with global ODA reaching a record high of USD 223.7 billion in 2023 (OECD, 2024). For many low-income countries, ODA inflows can constitute a significant portion of their gross national income, sometimes approaching or exceeding 20% (World Bank, 2022). Given the scale and importance of these aid flows, how ODA is allocated across recipient countries is a consequential policy decision with potentially far-reaching impacts on development outcomes.
+
+Many bilateral and multilateral donors use aid allocation formulae to determine country-level ODA allocations. These formulae typically account for factors like population size, poverty rates, and income levels. Importantly, many donors also incorporate measures of "aid effectiveness" - attempting to capture variation across countries in how effectively ODA translates into economic growth or poverty reduction. 
+
+A highly influential approach to measuring aid effectiveness was proposed by Collier and Dollar (2002). Their cross-country regression analysis found that aid had a larger positive impact on growth in countries with better quality policies and institutions, as measured by the World Bank's Country Policy and Institutional Assessment (CPIA) scores. This finding provided an empirical justification for donors to allocate more aid to countries with higher CPIA scores, on the grounds that aid would be more effective in these contexts. Indeed, the World Bank and other major donors continue to use CPIA scores as an input into their aid allocation decisions.
+
+However, the robustness and replicability of Collier and Dollar's (2002) results have been called into question. Easterly et al. (2004) failed to reproduce the findings when using an expanded dataset. More broadly, establishing a causal relationship between aid, policy quality, and growth outcomes faces significant challenges of endogeneity and omitted variable bias.
+
+Despite these critiques, the influence of Collier and Dollar's (2002) work on aid allocation policies has persisted. Surprisingly, there have been few recent attempts to replicate or test the robustness of their core findings using more current data. This paper aims to fill that gap by replicating Collier and Dollar's (2002) methodology using data from 2005 onwards. Our objective is to assess whether their results still hold in a more contemporary context.
+
+By revisiting this seminal work with updated data, we seek to inform current debates around aid allocation policies. Our findings may have important implications for how bilateral and multilateral donors approach the weighting of policy and institutional quality measures like CPIA scores in their aid allocation decisions. More broadly, this analysis contributes to ongoing discussions about aid effectiveness and the factors that mediate the relationship between foreign assistance and development outcomes.
+
+The remainder of this paper is structured as follows: Section 2 provides a review of relevant literature on aid allocation and effectiveness. Section 3 outlines our research methodology and empirical approach. Section 4 describes our data sources and key variables. Section 5 presents our estimation results and compares them to Collier and Dollar's (2002) original findings. Finally, Section 6 discusses the implications of our results and concludes.
+
+# Literature Review
+
+Official Development Assistance[^1] (ODA) is the principal policy tool used by governments for international development and remains a key source of financing for developing countries. ODA from official donors reached USD 223.7 billion in 2023, a record high (OECD, 2024). UK ODA spend, despite the announcement in 2021 to temporarily reduce ODA from 0.7% to 0.5% of GNI, also reached a record high of £15.4 (FCDO and ONS, 2024). For many low-income countries, ODA inflows can be close to 20% of GNI (e.g. Somalia, Mozambique) while for some Small Island Developing States, this number can be much higher (e.g. Marshall Islands) (World Bank, 2022).
+
+[^1]: Defined by the OECD Development Assistance Committee (DAC) as “government aid which promotes and specifically targets the economic development and welfare of developing countries”.
+
+Where and how ODA is allocated, is therefore highly consequential. To decide or benchmark allocations of ODA by country, several bilateral and multilateral donors use Aid Allocation Formulae, typically allocating ODA in proportion to population and rates of extreme poverty, and inversely proportional to GDP per capita. Many donors will also include a term to account for ‘Aid Effectiveness’ – to capture differences between countries in whether ODA is expected to translate into income growth or poverty reduction.
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| fig-width: 10
+#| fig-height: 5
+#| label: fig-cpia-gnp
+#| fig-cap: "Scatter plot of Average CPIA vs. Average GDP per Capita by Country. The plot includes linear regression line and highlights countries with the highest and lowest averages."
+
+library(tidyverse)
+
+data <- read_csv("data/processed/final_data.csv")
+
+# Summarize the data by country
+summarised_data <- data %>%
+  group_by(Country) %>%
+  summarize(
+    average_GNP_per_capita = mean(GNP_per_capita, na.rm = TRUE),
+    average_CPIA = mean(CPIA, na.rm = TRUE)
+  )
+
+# Identify countries with the highest and lowest average GNP_per_capita and CPIA
+high_gnp_countries <- summarised_data %>% top_n(1, average_GNP_per_capita)
+low_gnp_countries <- summarised_data %>% top_n(-1, average_GNP_per_capita)
+high_cpia_countries <- summarised_data %>% top_n(1, average_CPIA)
+low_cpia_countries <- summarised_data %>% top_n(-1, average_CPIA)
+
+# Combine the identified countries to label
+label_countries <- rbind(high_gnp_countries, low_gnp_countries, high_cpia_countries, low_cpia_countries) %>%
+  distinct(Country, .keep_all = TRUE)
+
+# Create the scatter plot using ggplot2
+ggplot(summarised_data, aes(x = average_CPIA, y = average_GNP_per_capita, label = Country)) +
+  geom_point(alpha = 0.6, color = 'blue', size = 3) +
+  geom_text(data = label_countries, aes(label = Country), vjust = -0.5, hjust = 0.5, size = 3) +
+  geom_smooth(method = 'lm', col = 'red', linetype = 'dashed') +
+  labs(title = 'Average CPIA vs. Average GDP per Capita by Country',
+       x = 'Average CPIA',
+       y = 'Average GDP per Capita ($)') +
+  theme_minimal(base_size = 15) +
+  theme(plot.title = element_text(hjust = 0.5, family = "serif"), 
+        axis.title = element_text(face = "bold", family = "serif"),
+        text = element_text(family = "serif"))
+```
+
+An influential measure of Aid Effectiveness is the World Bank’s Country Policy and Institutional Assessment (CPIA). The CPIA is an annual assessment made by the World Bank and rates countries against a set of 16 criteria grouped in four clusters: (1) economic management, criteria 1–3; (2) structural policies, criteria 4–6; (3) policies for social inclusion and equity, criteria 7–10; and (4) public sector management and institutions, criteria 11–16. CPIA scores feed into the World Bank’s Performance Based Allocation process for its International Development Association[^2] (IDA). The UK also uses the CPIA as part of its own Allocation Formulae[^3].
+
+[^2]: More detail on IDA Allocations [here](https://ida.worldbank.org/en/financing/resource-management).
+
+[^3]: We do not provide full details on the UK’s Aid Allocation process due to sensitivity. But in brief – bilateral aid allocations for programmes managed in country are allocated according to a model which considers; need (population in extreme poverty and income per capita), a country’s ability to self-finance poverty reduction, and aid effectiveness, which takes into account CPIA scores.
+
+There is a twofold rationale for including CPIA in Aid Allocation Formulae. The first is around incentive setting; countries may be incentivised to ‘improve’ policies and institutions, as measured by the CPIA, if they know that this is rewarded with higher aid allocations, which is desired because better policies and institutions independently lead to better development outcomes. This channel of impact is not explored in this paper but could be an interesting subject of further research.
+
+The second is that ODA is expected to have a greater impact on income growth or poverty reduction in countries with better policies and institutions, as measured by the CPIA. Burnside and Dollar (2000) first made this argument, finding through cross-country regression analysis that aid promotes growth, but only in countries with “good policy”. They find that the interaction term between aid and policy, measured by fiscal, inflationary and trade-openness indicators, is statistically significant. Collier and Dollar (2002) also reached similar conclusions, but in this case using the CPIA score as a measure of “good policy”. However, Easterly et al. (2004) challenges this argument, finding that the original Burnside & Dollar results do not hold when the analysis is extended to a different set of countries and time periods.
+
+Even granting the statistical relationship, inferring causality is a further step which is fraught with problems of endogeneity. Rajan et al. (2005) try to account for endogeneity and find no effect of aid on growth nor any significant interaction with good policy. Galiani et al. (2014) used a regression discontinuity design (based on IDA thresholds) to find a positive relationship of aid on growth, but do not test the interaction with policy and institutions. Meanwhile, at the micro-level, Denzier et al. (2013) find that the CPIA is positively associated with success at the World Bank project level, although this does not test the ultimate impacts on growth or poverty reduction.
+
+Despite a mixed evidence base, in practice the CPIA score continues to be influential in Aid Allocations, largely based on the Collier & Dollar (2002) results. More surprising is that, to our knowledge, there have not been recent replications nor robustness tests of the underlying Collier & Dollar (2002) results, despite their influence. This paper seeks to replicate the Collier & Dollar (2002) methodology but using updated data from 2005 onward, to assess whether their results still hold. This robustness check can inform international development policymakers on the weighting granted to a country’s CPIA score in allocations of Official Development Assistance.
+
+# Research Methodology
+
+We are seeking to assess how the effectiveness of international aid varies with the quality of policies and institutional frameworks in recipient countries. Specifically, we look to assess whether a measure of policy and institutional quality, the World Bank CPIA score, should be taken as a relevant variable to use as part of Aid Allocation Formulae on the grounds of Aid Effectiveness. To do so, we replicate the methodology of Collier & Dollar (2002), estimating the following regression:
+
+$$ G = c + b_1 \cdot X + b_2 \cdot P + b_3 \cdot A + b_4 \cdot A^2 + b_5 \cdot AP $$ {#eq-1}
+
+where:
+
+-   $G$: Growth rate of per capita GNP
+
+-   $X$: Exogenous conditions (initial income, institutional quality, regional dummies)
+
+-   $P$: Policy measure (CPIA)
+
+-   $A$: Aid as a percentage of GDP
+
+-   $A^2$: Squared term of aid to capture diminishing returns
+
+-   $AP$: Interaction term between aid and policy
+
+We follow Collier & Dollar (2002) in taking real per capita GDP growth as the outcome of interest. This is for the purpose of replication. However, it should be noted that in general, poverty reduction rather than economic growth is the primary objective of foreign aid. The UK’s 2002 International Development Act specifies that ODA must be “likely to contribute to a reduction in poverty”, and the UK’s recent White Paper on International Development highlights clear a focus on extreme poverty (consumption below \$2.15 a day in 2017 international dollars). Real per capita GDP and poverty headcount ratios are strongly correlated but are intermediated by the effects of income inequality and other factors which determine how average national income translates into individual consumption. There is emerging evidence (Wu et al., 2024) that the “growth elasticity of poverty” differs across regions.
+
+The dependent variable $G_{it}$ is real per capita GDP growth. For independent variables, $Χ$ encompasses control variables, initial income, is included to control for convergence effects, and macroeconomic variables. $A_{it}$ is the measure of net aid inflows as a percentage of GDP. The $A_{it}^2$, aid squared, is taken to account for the possibility of diminishing effects of aid. $P_{it}$ is a measure of policy and institutional quality, captured by the CPIA score. The interaction term $P \times A$ between policy quality and aid is included to test the hypothesis that the effectiveness of aid depends on the quality of the recipient country’s policies.
+
+# Data
+
+#### Data Collection
+
+The analysis builds on the foundation of work by Collier and Dollar by updating and expanding the dataset to include more recent years and a broader set of developing countries. The data collection involves several key steps:
+
+
+| **Data**             | **Description**                                                                                                                                                                                              | **Source**                                              |
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
+| CPIA Scores      | These scores measure the quality of policies and institutions in each country.                                                                                                                               | World Bank’s World Development Indicators               |
+| Aid              | Data on net Official Development Assistance (ODA) received as a percentage of GNP. This data is reported by the OECD Development Assistance Committee (DAC). This was converted to % of GDP for consistency. | OECD DAC dataset                                        |
+| Economic Growth  | GDP per capita growth rates calculated from GDP per capita in real terms.                                                                                                                                    | International Monetary Fund’s World Economic Outlook    |
+| Initial Income   | GDP per capita in 2005 used as a baseline for initial income.                                                                                                                                                | World Economic Outlook (WEO) dataset                    |
+| Regional Dummies | A lookup table was created to assign each country to a region (South Asia, East Asia/Pacific, Europe/Central Asia, Latin America/Caribbean, Sub-Saharan Africa, and Middle East/North Africa).               | IMF or World Bank data sources with a ‘regional’ column |
+# Estimation Approach
+
+#### Model Estimation
+
+The estimation of the growth function parameters involves the following regression models:
+
+1.  **Primary Regression**: The initial regression model aims to replicate the baseline findings of Collier and Dollar. The model specification includes:
+
+    -   **Dependent Variable**: Growth rate of per capita GDP ($G$).
+    -   **Independent Variables**:
+        -   Exogenous conditions ($X$): Initial income, institutional quality, and regional dummies.
+        -   Policy measure ($P$): CPIA scores.
+        -   Aid ($A$): ODA as a percentage of GDP, squared term of aid ($A^2$) to capture diminishing returns, and an interaction term between aid and policy ($AP$).
+
+    The model is specified as: $$ G = c + b_1 \times X + b_2 \times P + b_3 \times A + b_4 \times A^2 + b_5 \times AP + \text{Regional Dummies} $$ {#eq-2}
+
+    The regression is estimated using Ordinary Least Squares (OLS), providing a baseline estimation of the relationships between aid, policy, and growth.
+
+2.  **Fixed Effects Estimation**: To account for unobserved heterogeneity, a Fixed Effects (FE) model is employed. This model controls for time-invariant country-specific factors and common shocks in specific years. The specification is: $$ G_{it} = \alpha + \beta \times \text{CPIA}_{it} + \gamma \times \text{ODA}_{it} + \delta \times A^2_{it} + \eta \times AP_{it} + \text{Country FE} + \text{Year FE} + \epsilon_{it} $$ {#eq-3}
+
+    where:
+
+    -   $G_{it}$ is the growth rate of country $i$ at time $t$,
+    -   $\text{Country FE}$ and $\text{Year FE}$ represent country and year fixed effects, respectively.
+
+    The FE model is estimated using the `feols` function from the `fixest` package, with Driscoll-Kraay standard errors to account for cross-sectional dependence.
+
+# Results
+
+In this replication of Collier and Dollar’s study, the same variables and methodology were employed. Ideally, the original time period of 1974-1997 would have been used, but this was not feasible due to unavailability of the necessary data. Consequently, the regression results presented below cover the period from 2005 to 2022.
+
+In Collier & Dollar's (2002) paper, they find a positive and significant coefficient on the Aid-Policy interaction term. In the specification most comparable to ours, they estimate this coefficient at 0.31, with statistical significance at the 1% level. They also report that the CPIA measure of policy enters directly with a positive coefficient and marginal significance. Additionally, both the aid and aid squared terms enter with negative coefficients and are jointly significant. However, the coefficient on aid itself, $b_3$, is not significantly different from zero. Table 2 details our results.
+
+### OLS Model
+
+In the Ordinary Least Squares (OLS) analysis, the policy measure (CPIA) emerged as a significant predictor of growth, with a coefficient of 2.430 (p \< 0.01). This result indicates a strong positive relationship between the quality of policies and economic growth, underscoring the importance of a favorable policy environment. Conversely, the coefficient for aid as a percentage of GDP was 0.123 and statistically insignificant, suggesting that, on average, foreign aid does not have a discernible direct effect on growth in this model. Interestingly, the interaction term between aid and policy (AP) was found to be -0.067 but not statistically significant, implying no clear evidence that the effectiveness of aid is contingent upon the policy environment.
+
+### Fixed Effects Model
+
+The Fixed Effects (FE) model, which controls for unobserved heterogeneity across countries and time, provides additional insights. The policy measure (CPIA) continued to show a significant positive effect on growth, with an increased coefficient of 3.042 (p \< 0.05). This further affirms the critical role of good policies in fostering economic growth. However, the coefficient for aid as a percentage of GDP shifted to -0.276 and remained statistically insignificant, suggesting that, when accounting for country-specific effects, there is less evidence aid contributes positively to growth. The interaction term between aid and policy (AP) also changed to a positive coefficient of 0.058, though it remained statistically insignificant. This shift suggests a potential, albeit weak, complementary relationship between aid effectiveness and policy quality, although the evidence is not robust.
+
+### Comparison with Collier and Dollar
+
+The findings from our replication study contrast with those reported by Collier and Dollar. Both studies consistently highlight the significant and positive impact of good policy (CPIA) on economic growth. However, while Collier and Dollar reported a negative coefficient for aid as a percentage of GDP, indicative of diminishing returns, our study found mixed evidence. The OLS model suggested a positive but insignificant effect, whereas the FE model indicated a negative and insignificant effect. These discrepancies suggest that the relationship between aid and growth may be more complex and context-dependent in the post-2005 period.
+
+Moreover, Collier and Dollar identified a significant positive interaction between aid and policy, indicating that aid was more effective in countries with better policies. In contrast, our study found no consistent evidence of such an interaction, as the coefficient for the interaction term (AP) was negative in the OLS model and positive in the FE model, neither of which were statistically significant. This divergence may reflect changes in the global aid landscape, shifts in donor priorities, or variations in recipient countries' economic and political environments.
+
++------------------------------------------------+---------------+----------------------+
+|                                                | OLS Model     | Fixed Effects Model  |
++================================================+===============+======================+
+| Constant                                       | -4.269\*      |                      |
++------------------------------------------------+---------------+----------------------+
+|                                                | (2.189)       |                      |
++------------------------------------------------+---------------+----------------------+
+| Initial GDP per Capita                         | 0.000         |                      |
++------------------------------------------------+---------------+----------------------+
+|                                                | (0.000)       |                      |
++------------------------------------------------+---------------+----------------------+
+| Policy Measure (CPIA)                          | 2.430\*\*\*   | 3.042\*\*            |
++------------------------------------------------+---------------+----------------------+
+|                                                | (0.528)       | (1.129)              |
++------------------------------------------------+---------------+----------------------+
+| Aid as % of GDP                                | 0.123         | -0.276               |
++------------------------------------------------+---------------+----------------------+
+|                                                | (0.147)       | (0.308)              |
++------------------------------------------------+---------------+----------------------+
+| Aid Squared                                    | 0.001\*\*     | 0.001                |
++------------------------------------------------+---------------+----------------------+
+|                                                | (0.001)       | (0.001)              |
++------------------------------------------------+---------------+----------------------+
+| Aid \* Policy Interaction                      | -0.067        | 0.058                |
++------------------------------------------------+---------------+----------------------+
+|                                                | (0.045)       | (0.088)              |
++------------------------------------------------+---------------+----------------------+
+| Num.Obs.                                       | 1627          | 1627                 |
++------------------------------------------------+---------------+----------------------+
+| R2                                             | 0.040         | 0.254                |
++------------------------------------------------+---------------+----------------------+
+| R2 Adj.                                        | 0.035         | 0.206                |
++------------------------------------------------+---------------+----------------------+
+| R2 Within                                      |               | 0.018                |
++------------------------------------------------+---------------+----------------------+
+| R2 Within Adj.                                 |               | 0.015                |
++------------------------------------------------+---------------+----------------------+
+| Log.Lik.                                       | -4912.352     |                      |
++------------------------------------------------+---------------+----------------------+
+| RMSE                                           | 4.95          | 4.37                 |
++------------------------------------------------+---------------+----------------------+
+| Std.Errors                                     |               | Driscoll-Kraay (L=2) |
++------------------------------------------------+---------------+----------------------+
+| FE: Country                                    |               | X                    |
++------------------------------------------------+---------------+----------------------+
+| FE: Year                                       |               | X                    |
++------------------------------------------------+---------------+----------------------+
+| -   p \< 0.1, \*\* p \< 0.05, \*\*\* p \< 0.01 |               |                      |
++------------------------------------------------+---------------+----------------------+
+
+: Regression Models: Determinants of GDP Growth
+
+# Discussion and Conclusion
+
+Our analysis, using more recent data, does not reproduce Collier & Dollar (2002)’s finding that the effectiveness of aid on economic growth is higher for countries with ‘better’ policies and institutions, as measured by the World Bank’s CPIA score. Our findings are in line with Easterly et al. (2004), who also do not find a link between ‘policy’ and aid effectiveness. 
+
+The main implication for policy is that aid allocation formulae, used by international donors including the World Bank and FCDO, should reduce the weight placed on CPIA, on the grounds that we do not have firm evidence that aid is more effective in countries with a higher CPIA score. However, two important caveats should be made to this takeaway. Firstly, there may be other reasons than aid effectiveness for why donors may want to consider the CPIA score in allocations of aid. Importantly, and as discussed before, using CPIA in aid allocation formulae may creative a positive incentive effect for countries to ‘improve’ policies and institutions, insofar as this generates higher inflows of aid. Secondly, our analysis is limited in several ways. We use the methodology of Collier & Dollar (2002) to produce a robustness test of this influential paper but acknowledge that the cross-country regression methodology used here is limited, and far from a credible identification strategy. Even if a statistically significant and positive interaction term were found on the aid-policy interaction term, it would be a stretch to interpret this causally. 
+
+The results are in some sense counter intuitive. We would typically expect aid to be more effective in countries where policies and institutions are ‘better’ in some sense. Many of the most influential recent ideas in Development Economics point to the importance of institutions and political economy in determining outcomes, for instance Acemoglu & Robinson’s on ‘inclusive’ and ‘extractive’ institutions, Douglas North on Limited Access Orders, and Stefan Dercon on ‘Development Bargains’. It would make sense if these factors also influenced the mechanisms through which aid affects the economy.
+
+This suggests that the methodological approach to assessing the link between policy and institutional quality and aid-effectiveness needs rethinking. For instance, it might be that policy and institutional quality do not determine the effect of aid on economic growth but do affect how inclusive this growth is and how it affects poverty. If this is true, then poverty headcount or the poverty gap may be a more appropriate outcome indicator for this analysis. It may also be that the four-year growth periods used in our analysis are in sufficiently long to capture effects of policy and institutions, which may have more long-run effects. Thirdly, researchers should continue to look for more credible identification strategies to better find exogenous variation in aid, akin to Galiani et al. (2014).
+
+Equally, and most relevant policy, it may be that the CPIA variable itself is flawed and does not effectively capture the ‘quality of institutions and policy’ insofar as they matter for aid effectiveness. For instance, corruption forms part of the CPIA score which was used in this study; the 16th criterion of CPIA is ‘Transparency, Accountability, and Corruption in the Public Sector’. However, broader components of corruption could be considered as important features of Aid Allocation formulae, such as the International Country Risk Guide or Corruption Perceptions Index. There is mixed evidence on the impact of corruption on economic growth, with some studies finding both positive and negative impacts depending on the area (Spyromitros et al., 2022; de Vaal & Ebben, 2011) and d’Agostino et al (2016) finding a direct, negative impact of corruption on government investment and economic growth.  Alternatively, other organisations could develop their own metrics of aid effectiveness, independent of the World Bank’s. For instance, the FCDO has an extensive network of development advisers embedded in country offices and could construct an equivalent metric to CPIA but based on qualitative judgement of its own staff. Research could then test the association between this metric and aid effectiveness. 
+
+---
+
+# References
+
+1. Burnside, C. & Dollar, D., 2000. Aid, Policies, and Growth. *American Economic Review*, 90(4), pp.847–68. Available at: [https://www.jstor.org/stable/117311](https://www.jstor.org/stable/117311).
+
+2. Collier, P. & Dollar, D., 2002. Aid Allocation and Poverty Reduction. *European Economic Review*, 46(8), pp.1475–1500. Available at: [https://doi.org/10.1016/S0014-2921(01)00187-8](https://doi.org/10.1016/S0014-2921(01)00187-8).
+
+3. De Vaal, A. & Ebben, W., 2011. Institutions and the Relation between Corruption and Economic Growth. *Review of Development Economics*, 15(1). Available at: [https://doi.org/10.1111/j.1467-9361.2010.00596.x](https://doi.org/10.1111/j.1467-9361.2010.00596.x).
+
+4. Denizer, C., Kaufmann, D. & Kraay, A., 2013. Good Countries or Good Projects? Macro and Micro Correlates of World Bank Project Performance. *Journal of Development Economics*, 105(November), pp.288–302. Available at: [https://doi.org/10.1016/j.jdeveco.2013.06.003](https://doi.org/10.1016/j.jdeveco.2013.06.003).
+
+5. Driscoll, J.C. & Kraay, A.C., 1998. Consistent covariance matrix estimation with spatially dependent panel data. *National Bureau of Economic Research Working Paper Series*, No. w2459. Available at: [http://fmwww.bc.edu/repec/bocode/x/xtscc_paper](http://fmwww.bc.edu/repec/bocode/x/xtscc_paper) (Accessed: 4 August 2024).
+
+6. Easterly, W., Levine, R. & Roodman, D., 2004. New Data, New Doubts: A Comment on Burnside and Dollar’s ‘Aid, Policies, and Growth’ (2000). *American Economic Review*, 94(3), pp.774–80. DOI: [10.1257/0002828041464560](https://doi.org/10.1257/0002828041464560).
+
+7. FCDO and ONS, 2024. Statistics on International Development: Provisional UK Aid Spend 2023. Available at: [https://assets.publishing.service.gov.uk/media/6616447ceb8a1bb45e05e352/Statistics-on-International-Development-Provisional-UK-Aid-Spend-2023.pdf](https://assets.publishing.service.gov.uk/media/6616447ceb8a1bb45e05e352/Statistics-on-International-Development-Provisional-UK-Aid-Spend-2023.pdf).
+
+8. Galiani, S., Knack, S., Xu, L. & Zou, B., 2014. The Effect of Aid on Growth: Evidence from a Quasi-experiment. *World Bank Policy Research Working Paper No. 6865*. Available at: [https://ssrn.com/abstract=2436660](https://ssrn.com/abstract=2436660).
+
+9. OECD, 2024. Official Development Assistance (ODA). Available at: [https://web-archive.oecd.org/temp/2024-04-11/514409-official-development-assistance.htm](https://web-archive.oecd.org/temp/2024-04-11/514409-official-development-assistance.htm) (Accessed: 11 April 2024).
+
+10. Rajan, R. & Subramanian, A., 2005. Aid and Growth: What Does the Cross-Country Evidence Really Show? *IMF Working Paper 05-127*. Available at: [https://www.imf.org/external/pubs/ft/wp/2005/wp05127.pdf](https://www.imf.org/external/pubs/ft/wp/2005/wp05127.pdf).
+
+11. Spyromitros, E. & Panagiotidis, M., 2022. The Impact of Corruption on Economic Growth in Developing Countries and A Comparative Analysis of Corruption Measurement Indicators. *Cogent Economics and Finance*, 10(1). Available at: [https://doi.org/10.1080/23322039.2022.2129368](https://doi.org/10.1080/23322039.2022.2129368).
+
+12. World Bank, 2022. Data: Net ODA Received (% of GNI). Available at: [https://data.worldbank.org/indicator/DT.ODA.ODAT.GN.ZS](https://data.worldbank.org/indicator/DT.ODA.ODAT.GN.ZS).
+
+13. Wu, H., Atamanov, A., Bundervoet, T. & Paci, P., 2024. The Growth Elasticity of Poverty: Is Africa Any Different? *Policy Research working paper no. WPS 10690; PEOPLE*. Washington, D.C.: World Bank Group. Available at: [http://documents.worldbank.org/curated/en/099312502012418681/IDU1e36a6afa14bb414e6c192e61c45a54f4b453](http://documents.worldbank.org/curated/en/099312502012418681/IDU1e36a6afa14bb414e6c192e61c45a54f4b453).
+

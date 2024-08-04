@@ -3,6 +3,7 @@ library(tidyverse)
 library(fixest)
 library(readr)
 library(fuzzyjoin)
+library(modelsummary)
 
 # 1: Load the datasets ----
 # Make sure to update the file paths with the actual paths to your datasets
@@ -189,8 +190,43 @@ merged_data <- merged_data %>%
 cat("\nFinal merged dataset size:\n")
 cat("Rows in merged dataset:", nrow(merged_data), "\n\n")
 
+write.csv(merged_data, "data/processed/final_data.csv")
 
-# 3: Define the regression model ----
+
+# 3: Create plots ----
+
+# Summarize the data by country
+summarised_data <- merged_data %>%
+  group_by(Country) %>%
+  summarize(
+    average_GNP_per_capita = mean(GNP_per_capita, na.rm = TRUE),
+    average_CPIA = mean(CPIA, na.rm = TRUE)
+  )
+
+# Identify countries with the highest and lowest average GNP_per_capita and CPIA
+high_gnp_countries <- summarised_data %>% top_n(1, average_GNP_per_capita)
+low_gnp_countries <- summarised_data %>% top_n(-1, average_GNP_per_capita)
+high_cpia_countries <- summarised_data %>% top_n(1, average_CPIA)
+low_cpia_countries <- summarised_data %>% top_n(-1, average_CPIA)
+
+# Combine the identified countries to label
+label_countries <- rbind(high_gnp_countries, low_gnp_countries, high_cpia_countries, low_cpia_countries) %>%
+  distinct(Country, .keep_all = TRUE)
+
+# Create the scatter plot using ggplot2
+ggplot(summarised_data, aes(x = average_CPIA, y = average_GNP_per_capita, label = Country)) +
+  geom_point(alpha = 0.6, color = 'blue', size = 3) +
+  geom_text(data = label_countries, aes(label = Country), vjust = -0.5, hjust = 0.5, size = 3) +
+  geom_smooth(method = 'lm', col = 'red', linetype = 'dashed') +
+  labs(title = 'Average CPIA vs. Average GNP per Capita by Country',
+       x = 'Average CPIA',
+       y = 'Average GNP per Capita') +
+  theme_minimal(base_size = 14) +
+  theme(plot.title = element_text(hjust = 0.5, family = "serif"), 
+        axis.title = element_text(face = "bold", family = "serif"),
+        text = element_text(family = "serif"))
+
+# 4: Estimate the regression model ----
 # The model is: G = c + b1*X + b2*P + b3*A + b4*A^2 + b5*AP
 # where:
 # G = Growth rate of per capita GNP
@@ -200,27 +236,61 @@ cat("Rows in merged dataset:", nrow(merged_data), "\n\n")
 # A^2 = Squared term of aid to capture diminishing returns
 # AP = Interaction term between aid and policy
 
+
 # Create new variables for the model
 merged_data <- merged_data %>%
   mutate(A_squared = ODA_GDP^2,
          AP_interaction = ODA_GDP * CPIA)
 
-# Define the regression model (Middle East/North Africa dropped due to perfect collinearity)
-model <- lm(Growth ~ Initial_GNP_per_capita + CPIA + ODA_GDP + A_squared + AP_interaction +
-              `East Asia/Pacific` + `Europe/Central Asia` + `Latin America/Caribbean` + 
-               `Sub-Saharan Africa` + `South Asia`,  data = merged_data)
+# Define the first regression model (OLS)
+model_ols <- lm(Growth ~ Initial_GNP_per_capita + CPIA + ODA_GDP + A_squared + AP_interaction +
+                  `East Asia/Pacific` + `Europe/Central Asia` + `Latin America/Caribbean` + 
+                  `Sub-Saharan Africa` + `South Asia`, data = merged_data)
 
-summary(model)
+# Define the second model with fixed effects (FE)
+model_fe <- feols(Growth ~ CPIA + ODA_GDP + A_squared + AP_interaction | Country + Year, data = merged_data)
 
+# Summary with Driscoll-Kraay standard errors
+model_fe_summary <- summary(model_fe, driscoll_kraay ~ Year)
 
-# 3: Perform fixed effects estimation
+# Add sample size to the model summary
+model_ols_summary <- summary(model_ols)
+n_obs_ols <- nobs(model_ols)
 
-library(fixest)
+n_obs_fe <- model_fe_summary$nobs
 
-model_fe <- feols(Growth ~ CPIA + ODA_GDP + A_squared + AP_interaction | Country + Year,
-                  data = merged_data)
+# Define custom formatting function
+custom_format <- function(x) {
+  format(round(x, 3), nsmall = 3, scientific = FALSE)
+}
 
-summary(model_fe, driscoll_kraay ~ Year)
+# Define custom coefficient names
+coef_names <- c(
+  "(Intercept)" = "Constant",
+  "Initial_GNP_per_capita" = "Initial GDP per Capita",
+  "CPIA" = "Policy Measure (CPIA)",
+  "ODA_GDP" = "Aid as % of GDP",
+  "A_squared" = "Aid Squared",
+  "AP_interaction" = "Aid * Policy Interaction",
+  "`East Asia/Pacific`" = "East Asia/Pacific",
+  "`Europe/Central Asia`" = "Europe/Central Asia",
+  "`Latin America/Caribbean`" = "Latin America/Caribbean",
+  "`Sub-Saharan Africa`" = "Sub-Saharan Africa",
+  "`South Asia`" = "South Asia"
+)
 
+# Create the model summary with enhanced formatting
+modelsummary(list("OLS Model" = model_ols, "Fixed Effects Model" = model_fe_summary),
+             coef_map = coef_names,
+             stars = c('*' = .1, '**' = .05, '***' = .01),
+             statistic = "std.error",
+             fmt = custom_format,
+             gof_omit = "AIC|BIC",
+             output = "markdown",
+             title = "Regression Models: Determinants of GDP Growth",
+             notes = paste0("Standard errors in parentheses. Significance levels: *** p < 0.01, ** p < 0.05, * p < 0.1.",
+                            "\nNumber of observations (OLS): ", n_obs_ols,
+                            "\nNumber of observations (FE): ", n_obs_fe)
+)
 
 
